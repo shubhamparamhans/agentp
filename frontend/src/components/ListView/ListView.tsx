@@ -1,6 +1,14 @@
 // ListView Component
+interface Filter {
+  id: string
+  field: string
+  operator: string
+  value: string
+}
+
 interface ListViewProps {
   modelName?: string
+  filters?: Filter[]
 }
 
 const mockData: Record<string, any[]> = {
@@ -27,8 +35,40 @@ const mockData: Record<string, any[]> = {
   ],
 }
 
-export function ListView({ modelName = 'users' }: ListViewProps) {
-  const data = mockData[modelName] || []
+function applyFilter(row: any, filter: Filter): boolean {
+  const fieldValue = String(row[filter.field]).toLowerCase()
+  const filterValue = filter.value.toLowerCase()
+
+  switch (filter.operator) {
+    case 'equals':
+      return fieldValue === filterValue
+    case 'contains':
+      return fieldValue.includes(filterValue)
+    case 'startswith':
+      return fieldValue.startsWith(filterValue)
+    case 'endswith':
+      return fieldValue.endsWith(filterValue)
+    case 'gt':
+      return parseFloat(fieldValue) > parseFloat(filterValue)
+    case 'lt':
+      return parseFloat(fieldValue) < parseFloat(filterValue)
+    case 'gte':
+      return parseFloat(fieldValue) >= parseFloat(filterValue)
+    case 'lte':
+      return parseFloat(fieldValue) <= parseFloat(filterValue)
+    default:
+      return true
+  }
+}
+
+export function ListView({ modelName = 'users', filters = [] }: ListViewProps) {
+  let data = mockData[modelName] || []
+
+  // Apply filters
+  if (filters.length > 0) {
+    data = data.filter((row) => filters.every((filter) => applyFilter(row, filter)))
+  }
+
   const columns = data.length > 0 ? Object.keys(data[0]) : []
 
   return (
@@ -61,7 +101,9 @@ export function ListView({ modelName = 'users' }: ListViewProps) {
 
       {data.length === 0 && (
         <div className="text-center py-8">
-          <p className="text-gray-500">No data available</p>
+          <p className="text-gray-500">
+            {filters.length > 0 ? 'No data matches the applied filters' : 'No data available'}
+          </p>
         </div>
       )}
     </div>
