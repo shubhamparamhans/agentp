@@ -73,24 +73,32 @@ export function ListView({ modelName = 'users', filters = [] }: ListViewProps) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full divide-y divide-gray-200">
-        <thead className="bg-gray-100">
+      <table className="w-full divide-y divide-blue-100">
+        <thead className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-200">
           <tr>
             {columns.map((column) => (
               <th
                 key={column}
-                className="px-6 py-4 text-left text-sm font-semibold text-gray-900 capitalize"
+                className="px-6 py-4 text-left text-sm font-bold text-gray-900 capitalize"
               >
                 {column.replace('_', ' ')}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200">
+        <tbody className="divide-y divide-blue-100">
           {data.map((row, idx) => (
-            <tr key={idx} className="hover:bg-gray-50 transition-colors">
+            <tr
+              key={idx}
+              className={`transition-colors ${
+                idx % 2 === 0 ? 'bg-white' : 'bg-blue-50'
+              } hover:bg-blue-100`}
+            >
               {columns.map((column) => (
-                <td key={`${idx}-${column}`} className="px-6 py-4 text-sm text-gray-700">
+                <td
+                  key={`${idx}-${column}`}
+                  className="px-6 py-4 text-sm text-gray-700"
+                >
                   {String(row[column])}
                 </td>
               ))}
@@ -100,9 +108,9 @@ export function ListView({ modelName = 'users', filters = [] }: ListViewProps) {
       </table>
 
       {data.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-500">
-            {filters.length > 0 ? 'No data matches the applied filters' : 'No data available'}
+        <div className="text-center py-12 bg-blue-50">
+          <p className="text-gray-600 text-lg">
+            {filters.length > 0 ? '🔍 No data matches the applied filters' : '📭 No data available'}
           </p>
         </div>
       )}

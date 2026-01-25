@@ -58,11 +58,12 @@ function AppContent() {
   const currentModel = models.find((m) => m.name === selectedModel)
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-full mx-auto px-6 py-4">
-          <h1 className="text-4xl font-bold text-gray-900">Universal Data Viewer</h1>
+      <header className="bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg">
+        <div className="max-w-full mx-auto px-6 py-5">
+          <h1 className="text-4xl font-bold text-white">Universal Data Viewer</h1>
+          <p className="text-blue-100 mt-1">Explore and analyze your data with ease</p>
         </div>
       </header>
 
@@ -70,18 +71,21 @@ function AppContent() {
       <main className="flex-1 overflow-hidden">
         <div className="grid grid-cols-5 h-full gap-0">
           {/* Left Sidebar - Models */}
-          <aside className="col-span-1 bg-white border-r border-gray-200 overflow-y-auto">
+          <aside className="col-span-1 bg-white border-r-2 border-blue-100 overflow-y-auto shadow-sm">
             <div className="p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Models</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-gradient-to-b from-blue-500 to-indigo-600 rounded"></span>
+                Models
+              </h2>
               <div className="space-y-2">
                 {models.map((model) => (
                   <button
                     key={model.name}
                     onClick={() => handleSelectModel(model.name)}
-                    className={`w-full px-4 py-3 text-left rounded-lg transition-colors font-medium ${
+                    className={`w-full px-4 py-3 text-left rounded-lg transition-all font-medium ${
                       selectedModel === model.name
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md'
+                        : 'bg-gray-50 text-gray-700 hover:bg-blue-50'
                     }`}
                   >
                     {model.name.charAt(0).toUpperCase() + model.name.slice(1)}
@@ -92,33 +96,37 @@ function AppContent() {
           </aside>
 
           {selectedModel && (
-            <>
-              {/* Middle - Filters & Group By */}
-              <aside className="col-span-1 bg-white border-r border-gray-200 overflow-y-auto">
-                <div className="p-6 space-y-6">
-                  {/* Filters Section */}
+            /* Right Content Area - Filters, Group By, and Data */
+            <div className="col-span-4 bg-white overflow-hidden flex flex-col">
+              {/* Top Section - Filters & Group By */}
+              <div className="border-b-2 border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 overflow-y-auto max-h-64">
+                <div className="grid grid-cols-2 gap-8">
+                  {/* Filters Column */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Filters</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <span className="w-1 h-6 bg-blue-500 rounded"></span>
+                      Filters
+                    </h3>
                     <FilterBuilder
                       fields={currentModel?.fields || []}
                       onAddFilter={handleAddFilter}
                     />
                     {filters.length > 0 && (
-                      <div className="mt-4 space-y-2">
+                      <div className="mt-4 space-y-2 max-h-40 overflow-y-auto">
                         {filters.map((filter) => (
                           <div
                             key={filter.id}
-                            className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-start"
+                            className="p-3 bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-300 rounded-lg flex justify-between items-start hover:shadow-md transition-shadow"
                           >
                             <div className="text-sm flex-1">
                               <p className="font-medium text-gray-900">
-                                {filter.field} {filter.operator}
+                                {filter.field} <span className="text-blue-600">{filter.operator}</span>
                               </p>
-                              <p className="text-gray-600">{filter.value}</p>
+                              <p className="text-gray-700">{filter.value}</p>
                             </div>
                             <button
                               onClick={() => handleRemoveFilter(filter.id)}
-                              className="ml-2 text-red-500 hover:text-red-700 font-medium"
+                              className="ml-2 text-red-500 hover:text-red-700 font-bold hover:bg-red-50 px-2 py-1 rounded transition-colors"
                             >
                               ✕
                             </button>
@@ -128,9 +136,12 @@ function AppContent() {
                     )}
                   </div>
 
-                  {/* Group By Section */}
+                  {/* Group By Column */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Group By</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <span className="w-1 h-6 bg-indigo-500 rounded"></span>
+                      Group By
+                    </h3>
                     <select
                       value={groupByField || ''}
                       onChange={(e) => {
@@ -139,7 +150,7 @@ function AppContent() {
                           setShowGroupView(true)
                         }
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 font-medium"
                     >
                       <option value="">No grouping</option>
                       {currentModel?.fields.map((field) => (
@@ -152,54 +163,64 @@ function AppContent() {
                     {groupByField && (
                       <button
                         onClick={() => setShowGroupView(!showGroupView)}
-                        className="w-full mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                        className="w-full mt-3 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all font-medium shadow-md hover:shadow-lg"
                       >
-                        {showGroupView ? 'Show Table View' : 'Show Group View'}
+                        {showGroupView ? '📊 Show Table View' : '📈 Show Group View'}
                       </button>
                     )}
                   </div>
                 </div>
-              </aside>
-
-              {/* Right Content Area - Data Display */}
-              <div className="col-span-3 bg-gray-50 overflow-y-auto flex flex-col">
-                <div className="flex-1 overflow-y-auto p-8">
-                  {/* Selected Model Heading */}
-                  <div className="mb-6">
-                    <h2 className="text-3xl font-bold text-gray-900 capitalize">{selectedModel}</h2>
-                    <p className="text-gray-600 mt-1">
-                      {currentModel?.table}
-                      {filters.length > 0 && ` • ${filters.length} filter(s) applied`}
-                      {groupByField && ` • Grouped by ${groupByField}`}
-                    </p>
-                  </div>
-
-                  {/* Data Display */}
-                  {showGroupView && groupByField ? (
-                    <div className="bg-white rounded-lg shadow">
-                      <GroupView
-                        modelName={selectedModel}
-                        groupByField={groupByField}
-                        filters={filters}
-                      />
-                    </div>
-                  ) : (
-                    <div className="bg-white rounded-lg shadow">
-                      <ListView
-                        modelName={selectedModel}
-                        filters={filters}
-                      />
-                    </div>
-                  )}
-                </div>
               </div>
-            </>
+
+              {/* Bottom Section - Data Display */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {/* Selected Model Heading */}
+                <div className="mb-6">
+                  <h2 className="text-3xl font-bold text-gray-900 capitalize">{selectedModel}</h2>
+                  <p className="text-gray-600 mt-2 flex gap-4">
+                    <span>
+                      <span className="font-semibold text-gray-900">Table:</span> {currentModel?.table}
+                    </span>
+                    {filters.length > 0 && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        {filters.length} filter(s)
+                      </span>
+                    )}
+                    {groupByField && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        Grouped by {groupByField}
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                {/* Data Display */}
+                {showGroupView && groupByField ? (
+                  <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <GroupView
+                      modelName={selectedModel}
+                      groupByField={groupByField}
+                      filters={filters}
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <ListView
+                      modelName={selectedModel}
+                      filters={filters}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
           {!selectedModel && (
-            <div className="col-span-4 flex items-center justify-center">
+            <div className="col-span-4 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
               <div className="text-center">
-                <p className="text-xl text-gray-500">Select a model from the left to view data</p>
+                <div className="text-6xl mb-4">📊</div>
+                <p className="text-2xl text-gray-600 font-semibold">Select a model to get started</p>
+                <p className="text-gray-500 mt-2">Choose from Users, Orders, or Products</p>
               </div>
             </div>
           )}
