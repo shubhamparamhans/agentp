@@ -82,13 +82,7 @@ func (r *Registry) LoadFromConfig(cfg *config.Config) error {
 				Nullable:      cfgField.Nullable,
 				Filterable:    true,  // Default: fields are filterable
 				Groupable:     true,  // Default: fields are groupable
-				Aggregatable:  false, // Default: fields are not aggregatable (only aggregates are)
-			}
-
-			// Special handling for aggregate types
-			if cfgField.Type == "integer" || cfgField.Type == "int" ||
-				cfgField.Type == "float" || cfgField.Type == "decimal" {
-				field.Aggregatable = true
+				Aggregatable:  true,  // All fields are aggregatable; validateAggregateForType validates function-type compatibility
 			}
 
 			model.Fields[cfgField.Name] = field

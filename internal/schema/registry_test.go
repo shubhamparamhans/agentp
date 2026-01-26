@@ -315,13 +315,13 @@ func TestAggregatableFields(t *testing.T) {
 		wantFilter   bool
 		wantGroupable bool
 	}{
-		{"id", true, true, true},          // integer
-		{"count", true, true, true},       // integer
-		{"amount", true, true, true},      // decimal
-		{"price", true, true, true},       // float
-		{"name", false, true, true},       // string
-		{"is_active", false, true, true},  // boolean
-		{"created_at", false, true, true}, // timestamp
+		{"id", true, true, true},          // integer - aggregatable
+		{"count", true, true, true},       // integer - aggregatable
+		{"amount", true, true, true},      // decimal - aggregatable
+		{"price", true, true, true},       // float - aggregatable
+		{"name", true, true, true},        // string - aggregatable (COUNT/MIN/MAX work on all types)
+		{"is_active", true, true, true},   // boolean - aggregatable (COUNT/MIN/MAX work on all types)
+		{"created_at", true, true, true},  // timestamp - aggregatable (COUNT/MIN/MAX work on all types)
 	}
 
 	for _, tt := range tests {
