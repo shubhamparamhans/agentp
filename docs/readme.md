@@ -298,10 +298,30 @@ UDV aims to become a foundational tool for internal data exploration across mode
 
 The following features and enhancements are planned for future releases:
 
-### 15.0 Pagination & Sorting
-- Adding sorting and pagination logic
-- Pagination mightbe present in backend need to add support in frontend
-- Sorting should be as simple as clicking on header for sorting in asceding or desc order.
+### 15.0 🔄 Pagination & Sorting (HIGH PRIORITY - Phase 2)
+
+**Status**: Backend support ready | Frontend implementation needed
+
+#### Pagination
+- ✅ Backend: Supports LIMIT/OFFSET in query DSL
+- ✅ Backend: Returns paginated results from database
+- ❌ Frontend: UI pagination controls needed
+- **Implementation**: 
+  - Add page size selector (10, 25, 50, 100)
+  - Add previous/next/page navigation
+  - Display total results count
+  - Update API client to pass limit/offset
+  - Maintain filter state across pages
+
+#### Sorting
+- ✅ Backend: Supports ORDER BY in query DSL
+- ❌ Frontend: Column header sorting UI needed
+- **Implementation**:
+  - Clickable column headers for sorting
+  - Visual indicators (↑ ↓) for sort direction
+  - Multi-column sorting support (optional)
+  - Remember sort preference
+  - Sort all column types (string, numeric, dates)
 
 ### 15.1 🔐 Authentication
 - Add basic authentication to the portal

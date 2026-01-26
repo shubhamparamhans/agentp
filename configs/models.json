@@ -1,18 +1,50 @@
 {
   "models": [
     {
+      "name": "orders",
+      "table": "orders",
+      "primaryKey": "id",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "amount",
+          "type": "decimal",
+          "nullable": false
+        },
+        {
+          "name": "metadata",
+          "type": "json",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ]
+    },
+    {
       "name": "users",
       "table": "users",
       "primaryKey": "id",
       "fields": [
         {
           "name": "id",
-          "type": "integer",
-          "nullable": false
-        },
-        {
-          "name": "name",
-          "type": "string",
+          "type": "uuid",
           "nullable": false
         },
         {
@@ -21,36 +53,14 @@
           "nullable": false
         },
         {
-          "name": "created_at",
-          "type": "timestamp",
-          "nullable": false
-        }
-      ]
-    },
-    {
-      "name": "orders",
-      "table": "orders",
-      "primaryKey": "id",
-      "fields": [
-        {
-          "name": "id",
-          "type": "integer",
-          "nullable": false
-        },
-        {
-          "name": "user_id",
-          "type": "integer",
-          "nullable": false
-        },
-        {
-          "name": "total",
-          "type": "decimal",
-          "nullable": false
+          "name": "name",
+          "type": "string",
+          "nullable": true
         },
         {
           "name": "created_at",
           "type": "timestamp",
-          "nullable": false
+          "nullable": true
         }
       ]
     }
