@@ -17,15 +17,17 @@ type API struct {
     validator *dsl.Validator
     planner   *planner.Planner
     builder   *postgres.QueryBuilder
+    db        *postgres.Database
 }
 
-// New creates a new API instance
-func New(reg *schema.Registry) *API {
+// New creates a new API instance with optional database connection
+func New(reg *schema.Registry, db *postgres.Database) *API {
     return &API{
         registry:  reg,
         validator: dsl.NewValidator(reg),
         planner:   planner.NewPlanner(reg),
         builder:   postgres.NewQueryBuilder(),
+        db:        db,
     }
 }
 
@@ -150,6 +152,19 @@ func (a *API) handleQuery(w http.ResponseWriter, r *http.Request) {
         "sql":    sql,
         "params": params,
     }
+
+    // Execute query if database is available
+    if a.db != nil {
+        rows, err := a.db.ExecuteAndFetchRows(sql, params...)
+        if err != nil {
+            fmt.Printf("Warning: Failed to execute query: %v\n", err)
+            // Don't fail the request - still return SQL and params
+            // Frontend can see what query would have been executed
+        } else {
+            resp["data"] = rows
+        }
+    }
+
     w.Header().Set("Content-Type", "application/json")
     _ = json.NewEncoder(w).Encode(resp)
 }

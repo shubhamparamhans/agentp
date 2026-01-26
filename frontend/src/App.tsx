@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ListView } from './components/ListView/ListView'
 import { FilterBuilder } from './components/FilterBuilder/FilterBuilder'
 import { GroupView } from './components/GroupView/GroupView'
 import DetailView from './components/DetailView/DetailView'
 import { AppProvider } from './state/AppContext'
+import { fetchModels, type Model } from './api/client'
 
 interface Filter {
   id: string
@@ -14,6 +15,9 @@ interface Filter {
 
 function AppContent() {
   const [selectedModel, setSelectedModel] = useState<string | null>(null)
+  const [models, setModels] = useState<Model[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<Filter[]>([])
   const [groupByField, setGroupByField] = useState<string | null>(null)
   const [showGroupView, setShowGroupView] = useState(false)
@@ -22,26 +26,24 @@ function AppContent() {
   const [selectedRow, setSelectedRow] = useState<Record<string, any> | null>(null)
   const [showDetailView, setShowDetailView] = useState(false)
 
-  const models = [
-    {
-      name: 'users',
-      table: 'users',
-      primaryKey: 'id',
-      fields: ['id', 'name', 'email', 'created_at'],
-    },
-    {
-      name: 'orders',
-      table: 'orders',
-      primaryKey: 'id',
-      fields: ['id', 'user_id', 'total', 'created_at'],
-    },
-    {
-      name: 'products',
-      table: 'products',
-      primaryKey: 'id',
-      fields: ['id', 'name', 'price', 'stock', 'created_at'],
-    },
-  ]
+  // Fetch models on component mount
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const fetchedModels = await fetchModels()
+        setModels(fetchedModels)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load models')
+        console.error('Error loading models:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadModels()
+  }, [])
 
   const handleSelectModel = (modelName: string) => {
     setSelectedModel(modelName)
@@ -69,6 +71,9 @@ function AppContent() {
 
   const currentModel = models.find((m) => m.name === selectedModel)
 
+  // Extract field names from model
+  const currentModelFields = currentModel?.fields?.map((f) => f.name) || []
+
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       {/* Header */}
@@ -77,6 +82,7 @@ function AppContent() {
           <div>
             <h1 className="text-3xl font-bold text-white">Universal Data Viewer</h1>
             <p className="text-gray-400 mt-1">Explore and analyze your data with ease</p>
+            {error && <p className="text-red-400 text-sm mt-1">⚠️ {error}</p>}
           </div>
           {selectedModel && (
             <div className="flex gap-3">
@@ -105,91 +111,118 @@ function AppContent() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-hidden flex">
-        <div className="w-full h-full grid grid-cols-5 gap-0">
-          {/* Left Sidebar - Models */}
-          <aside className="col-span-1 bg-gray-800 border-r border-gray-700 overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <span className="text-cyan-400">📊</span>
-                Models
-              </h2>
-              <div className="space-y-2">
-                {models.map((model) => (
-                  <button
-                    key={model.name}
-                    onClick={() => handleSelectModel(model.name)}
-                    className={`w-full px-4 py-3 text-left rounded-lg transition-all font-medium ${
-                      selectedModel === model.name
-                        ? 'bg-cyan-600 text-white shadow-lg'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    {model.name.charAt(0).toUpperCase() + model.name.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </aside>
-
-          {/* Right Content Area */}
-          <div className="col-span-4 bg-gray-900 overflow-hidden flex flex-col">
-            {selectedModel ? (
-              <>
-                {/* Top Section - Model Info */}
-                <div className="border-b border-gray-700 bg-gray-800 p-6">
-                  <h2 className="text-3xl font-bold text-white capitalize">{selectedModel}</h2>
-                  <p className="text-gray-400 mt-2 flex gap-4">
-                    <span>
-                      <span className="font-semibold text-white">Table:</span> {currentModel?.table}
-                    </span>
-                    {filters.length > 0 && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-cyan-900 text-cyan-300">
-                        {filters.length} filter(s)
-                      </span>
-                    )}
-                    {groupByField && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-900 text-purple-300">
-                        Grouped by {groupByField}
-                      </span>
-                    )}
-                  </p>
-                </div>
-
-                {/* Data Display */}
-                <div className="flex-1 overflow-y-auto p-6">
-                  {showGroupView && groupByField ? (
-                    <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
-                      <GroupView
-                        modelName={selectedModel}
-                        groupByField={groupByField}
-                        filters={filters}
-                      />
-                    </div>
-                  ) : (
-                    <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
-                      <ListView
-                        modelName={selectedModel}
-                        filters={filters}
-                        onRowClick={handleRowClick}
-                      />
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">📊</div>
-                  <p className="text-2xl text-gray-400 font-semibold">Select a model to get started</p>
-                  <p className="text-gray-500 mt-2">Choose from Users, Orders, or Products</p>
-                </div>
-              </div>
-            )}
+      {/* Loading state */}
+      {loading && (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block animate-spin text-4xl mb-4">⚙️</div>
+            <p className="text-xl text-gray-300">Loading models...</p>
           </div>
         </div>
-      </main>
+      )}
+
+      {/* Error state */}
+      {error && !loading && (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center bg-red-900 bg-opacity-30 border border-red-700 rounded-lg p-8 max-w-md">
+            <div className="text-5xl mb-4">❌</div>
+            <p className="text-xl text-red-300 font-semibold">{error}</p>
+            <p className="text-gray-400 mt-2">Make sure the backend server is running on http://localhost:8080</p>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      {!loading && !error && (
+        <main className="flex-1 overflow-hidden flex">
+          <div className="w-full h-full grid grid-cols-5 gap-0">
+            {/* Left Sidebar - Models */}
+            <aside className="col-span-1 bg-gray-800 border-r border-gray-700 overflow-y-auto">
+              <div className="p-6">
+                <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <span className="text-cyan-400">📊</span>
+                  Models ({models.length})
+                </h2>
+                <div className="space-y-2">
+                  {models.map((model) => (
+                    <button
+                      key={model.name}
+                      onClick={() => handleSelectModel(model.name)}
+                      className={`w-full px-4 py-3 text-left rounded-lg transition-all font-medium ${
+                        selectedModel === model.name
+                          ? 'bg-cyan-600 text-white shadow-lg'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      {model.name.charAt(0).toUpperCase() + model.name.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </aside>
+
+            {/* Right Content Area */}
+            <div className="col-span-4 bg-gray-900 overflow-hidden flex flex-col">
+              {selectedModel ? (
+                <>
+                  {/* Top Section - Model Info */}
+                  <div className="border-b border-gray-700 bg-gray-800 p-6">
+                    <h2 className="text-3xl font-bold text-white capitalize">{selectedModel}</h2>
+                    <p className="text-gray-400 mt-2 flex gap-4">
+                      <span>
+                        <span className="font-semibold text-white">Table:</span> {currentModel?.table}
+                      </span>
+                      <span>
+                        <span className="font-semibold text-white">Primary Key:</span> {currentModel?.primary_key}
+                      </span>
+                      {filters.length > 0 && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-cyan-900 text-cyan-300">
+                          {filters.length} filter(s)
+                        </span>
+                      )}
+                      {groupByField && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-900 text-purple-300">
+                          Grouped by {groupByField}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Data Display */}
+                  <div className="flex-1 overflow-y-auto p-6">
+                    {showGroupView && groupByField ? (
+                      <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
+                        <GroupView
+                          modelName={selectedModel}
+                          groupByField={groupByField}
+                          filters={filters}
+                        />
+                      </div>
+                    ) : (
+                      <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
+                        <ListView
+                          modelName={selectedModel}
+                          filters={filters}
+                          modelFields={currentModelFields}
+                          onRowClick={handleRowClick}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-6xl mb-4">📊</div>
+                    <p className="text-2xl text-gray-400 font-semibold">Select a model to get started</p>
+                    <p className="text-gray-500 mt-2">Choose from the available models on the left</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </main>
+      )}
 
       {/* Filter Modal Overlay */}
       {showFilterModal && selectedModel && (
@@ -209,7 +242,7 @@ function AppContent() {
             </div>
             <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
               <FilterBuilder
-                fields={currentModel?.fields || []}
+                fields={currentModelFields}
                 onAddFilter={handleAddFilter}
               />
 
@@ -276,7 +309,7 @@ function AppContent() {
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:ring-opacity-20 font-medium"
                 >
                   <option value="">No grouping</option>
-                  {currentModel?.fields.map((field) => (
+                  {currentModelFields.map((field) => (
                     <option key={field} value={field}>
                       {field.replace('_', ' ')}
                     </option>

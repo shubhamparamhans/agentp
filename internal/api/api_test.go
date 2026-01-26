@@ -36,7 +36,7 @@ func setupRegistryForTest() *schema.Registry {
 
 func TestModelsEndpoint(t *testing.T) {
     reg := setupRegistryForTest()
-    a := New(reg)
+    a := New(reg, nil)  // ← Pass nil for database since we're testing without DB
     mux := http.NewServeMux()
     a.RegisterRoutes(mux)
 
@@ -66,7 +66,7 @@ func TestModelsEndpoint(t *testing.T) {
 
 func TestQueryEndpoint_Simple(t *testing.T) {
     reg := setupRegistryForTest()
-    a := New(reg)
+    a := New(reg, nil)  // ← Pass nil for database since we're testing without DB
     mux := http.NewServeMux()
     a.RegisterRoutes(mux)
 

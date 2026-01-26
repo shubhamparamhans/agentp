@@ -7,6 +7,7 @@ import (
 
 	"udv/internal/config"
     "udv/internal/api"
+	"udv/internal/adapter/postgres"
 	"udv/internal/schema"
 )
 
@@ -39,6 +40,22 @@ func main() {
 	// Log registry initialization
 	fmt.Printf("Schema registry initialized with %d model(s)\n", len(registry.ListModels()))
 
+	// Initialize database connection (optional)
+	var db *postgres.Database
+	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
+		var err error
+		db, err = postgres.Connect(dbURL)
+		if err != nil {
+			fmt.Printf("Warning: Could not connect to database: %v\n", err)
+			fmt.Println("Running in SQL-generation-only mode")
+		} else {
+			defer db.Close()
+			fmt.Println("Database connection established")
+		}
+	} else {
+		fmt.Println("DATABASE_URL not set, running in SQL-generation-only mode")
+	}
+
 	// Health check endpoint
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -47,11 +64,27 @@ func main() {
 	})
 
 	// Register API routes
-	apiSrv := api.New(registry)
+	apiSrv := api.New(registry, db)
 	apiSrv.RegisterRoutes(mux)
 
+
+	// CORS middleware
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
+		w.Header().Set("Access-Control-Max-Age", "86400")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		mux.ServeHTTP(w, r)
+	})
+
 	fmt.Println("Server starting on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8080", handler); err != nil {
 		panic(err)
 	}
 }

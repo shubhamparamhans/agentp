@@ -1,4 +1,7 @@
 // ListView Component
+import { useState, useEffect } from 'react'
+import { executeQuery, buildDSLQuery, type QueryResponse } from '../../api/client'
+
 interface Filter {
   id: string
   field: string
@@ -9,6 +12,7 @@ interface Filter {
 interface ListViewProps {
   modelName?: string
   filters?: Filter[]
+  modelFields?: string[]
   onRowClick?: (row: Record<string, any>) => void
 }
 
@@ -36,80 +40,135 @@ const mockData: Record<string, any[]> = {
   ],
 }
 
-function applyFilter(row: any, filter: Filter): boolean {
-  const fieldValue = String(row[filter.field]).toLowerCase()
-  const filterValue = filter.value.toLowerCase()
-
-  switch (filter.operator) {
-    case 'equals':
-      return fieldValue === filterValue
-    case 'contains':
-      return fieldValue.includes(filterValue)
-    case 'startswith':
-      return fieldValue.startsWith(filterValue)
-    case 'endswith':
-      return fieldValue.endsWith(filterValue)
-    case 'gt':
-      return parseFloat(fieldValue) > parseFloat(filterValue)
-    case 'lt':
-      return parseFloat(fieldValue) < parseFloat(filterValue)
-    case 'gte':
-      return parseFloat(fieldValue) >= parseFloat(filterValue)
-    case 'lte':
-      return parseFloat(fieldValue) <= parseFloat(filterValue)
-    default:
-      return true
+function convertOperator(operator: string): string {
+  const mapping: Record<string, string> = {
+    equals: '=',
+    contains: 'like',
+    startswith: 'starts_with',
+    endswith: 'ends_with',
+    gt: '>',
+    lt: '<',
+    gte: '>=',
+    lte: '<=',
   }
+  return mapping[operator] || operator
 }
 
-export function ListView({ modelName = 'users', filters = [], onRowClick }: ListViewProps) {
-  let data = mockData[modelName] || []
+export function ListView({ modelName = 'users', filters = [], modelFields = [], onRowClick }: ListViewProps) {
+  const [data, setData] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Apply filters
-  if (filters.length > 0) {
-    data = data.filter((row) => filters.every((filter) => applyFilter(row, filter)))
-  }
+  // Fetch data when model or filters change
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
 
-  const columns = data.length > 0 ? Object.keys(data[0]) : []
+        // Build DSL query from filters
+        const dslFilters = filters.map((f) => ({
+          field: f.field,
+          op: convertOperator(f.operator),
+          value: isNaN(Number(f.value)) ? f.value : Number(f.value),
+        }))
+
+        const query = buildDSLQuery(
+          modelName,
+          modelFields.length > 0 ? modelFields : undefined,
+          dslFilters.length > 0 ? dslFilters : undefined,
+          undefined,
+          100,
+          0
+        )
+
+        // Execute query via backend
+        const response: QueryResponse = await executeQuery(query)
+
+        if (response.error) {
+          setError(response.error)
+          // Fallback to mock data
+          setData(mockData[modelName] || [])
+        } else {
+          // Use real data if available, otherwise fallback to mock data
+          if (response.data && response.data.length > 0) {
+            setData(response.data)
+            console.log('Data from backend:', response.data)
+          } else {
+            setData(mockData[modelName] || [])
+            console.log('Using mock data (no backend results)')
+          }
+          console.log('Generated SQL:', response.sql)
+          console.log('Parameters:', response.params)
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load data')
+        // Fallback to mock data
+        setData(mockData[modelName] || [])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [modelName, filters, modelFields])
+
+  const columns = data.length > 0 ? Object.keys(data[0]) : modelFields.length > 0 ? modelFields : []
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full divide-y divide-gray-700">
-        <thead className="bg-gray-800 border-b-2 border-cyan-600">
-          <tr>
-            {columns.map((column) => (
-              <th
-                key={column}
-                className="px-6 py-4 text-left text-sm font-bold text-cyan-400 capitalize"
-              >
-                {column.replace('_', ' ')}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-700">
-          {data.map((row, idx) => (
-            <tr
-              key={idx}
-              onClick={() => onRowClick?.(row)}
-              className={`transition-colors cursor-pointer ${
-                idx % 2 === 0 ? 'bg-gray-800' : 'bg-gray-750'
-              } hover:bg-gray-700 hover:border-l-4 hover:border-cyan-600`}
-            >
+      {loading && (
+        <div className="text-center py-8 text-gray-400">
+          <span className="inline-block animate-spin mr-2">⚙️</span>
+          Loading data...
+        </div>
+      )}
+
+      {error && (
+        <div className="p-4 bg-red-900 bg-opacity-20 border border-red-700 text-red-300 rounded">
+          ⚠️ {error}
+        </div>
+      )}
+
+      {!loading && !error && (
+        <table className="w-full divide-y divide-gray-700">
+          <thead className="bg-gray-800 border-b-2 border-cyan-600">
+            <tr>
               {columns.map((column) => (
-                <td
-                  key={`${idx}-${column}`}
-                  className="px-6 py-4 text-sm text-gray-200"
+                <th
+                  key={column}
+                  className="px-6 py-4 text-left text-sm font-bold text-cyan-400 capitalize"
                 >
-                  {String(row[column])}
-                </td>
+                  {column.replace('_', ' ')}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-700">
+            {data.map((row, idx) => (
+              <tr
+                key={idx}
+                onClick={() => onRowClick?.(row)}
+                className={`transition-colors cursor-pointer ${
+                  idx % 2 === 0 ? 'bg-gray-800' : 'bg-gray-750'
+                } hover:bg-gray-700 hover:border-l-4 hover:border-cyan-600`}
+              >
+                {columns.map((column) => (
+                  <td
+                    key={`${idx}-${column}`}
+                    className="px-6 py-4 text-sm text-gray-200"
+                  >
+                    {String(row[column])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
-      {data.length === 0 && (
+      {!loading && !error && data.length === 0 && (
         <div className="text-center py-12 bg-gray-800">
           <p className="text-gray-400 text-lg">
             {filters.length > 0 ? '🔍 No data matches the applied filters' : '📭 No data available'}

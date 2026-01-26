@@ -46,3 +46,53 @@ func (d *Database) QueryRow(sql string, args ...interface{}) *sql.Row {
 func (d *Database) Exec(sql string, args ...interface{}) (sql.Result, error) {
 	return d.db.Exec(sql, args...)
 }
+
+// ExecuteAndFetchRows executes a query and returns results as []map[string]interface{}
+func (d *Database) ExecuteAndFetchRows(sql string, args ...interface{}) ([]map[string]interface{}, error) {
+	rows, err := d.db.Query(sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("query execution failed: %w", err)
+	}
+	defer rows.Close()
+
+	// Get column names
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get columns: %w", err)
+	}
+
+	// Fetch all rows
+	var results []map[string]interface{}
+	for rows.Next() {
+		// Create a slice of interface{} to hold the values
+		values := make([]interface{}, len(columns))
+		valuePtrs := make([]interface{}, len(columns))
+		for i := range columns {
+			valuePtrs[i] = &values[i]
+		}
+
+		// Scan the row
+		if err := rows.Scan(valuePtrs...); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		// Convert to map
+		entry := make(map[string]interface{})
+		for i, col := range columns {
+			val := values[i]
+			// Convert []byte to string for better JSON serialization
+			if b, ok := val.([]byte); ok {
+				entry[col] = string(b)
+			} else {
+				entry[col] = val
+			}
+		}
+		results = append(results, entry)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	return results, nil
+}

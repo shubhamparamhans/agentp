@@ -1,6 +1,7 @@
 // GroupView Component
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type React from 'react'
+import { executeQuery, buildDSLQuery, type QueryResponse } from '../../api/client'
 
 interface Filter {
   id: string
@@ -98,19 +99,95 @@ function renderCellValue(value: any): React.ReactNode {
   return String(value)
 }
 
+function convertOperator(operator: string): string {
+  const mapping: Record<string, string> = {
+    equals: '=',
+    contains: 'like',
+    startswith: 'starts_with',
+    endswith: 'ends_with',
+    gt: '>',
+    lt: '<',
+    gte: '>=',
+    lte: '<=',
+  }
+  return mapping[operator] || operator
+}
+
 export function GroupView({ modelName = 'users', groupByField = '', filters = [] }: GroupViewProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
+  const [data, setData] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  let data = mockData[modelName] || []
+  // Fetch grouped data when model, filters, or groupByField change
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
 
-  // Apply filters
-  if (filters.length > 0) {
-    data = data.filter((row) => filters.every((filter) => applyFilter(row, filter)))
+        // Build DSL query with GROUP BY
+        const dslFilters = filters.map((f) => ({
+          field: f.field,
+          op: convertOperator(f.operator),
+          value: isNaN(Number(f.value)) ? f.value : Number(f.value),
+        }))
+
+        const query = buildDSLQuery(
+          modelName,
+          undefined,
+          dslFilters.length > 0 ? dslFilters : undefined,
+          groupByField,
+          100,
+          0
+        )
+
+        // Execute query via backend
+        const response: QueryResponse = await executeQuery(query)
+
+        if (response.error) {
+          setError(response.error)
+          // Fallback to mock data
+          setData(mockData[modelName] || [])
+        } else {
+          // Use real data if available, otherwise fallback to mock data
+          if (response.data && response.data.length > 0) {
+            setData(response.data)
+            console.log('Grouped data from backend:', response.data)
+          } else {
+            setData(mockData[modelName] || [])
+            console.log('Using mock data (no backend results)')
+          }
+          console.log('Generated GROUP BY SQL:', response.sql)
+          console.log('Parameters:', response.params)
+        }
+      } catch (err) {
+        console.error('Error fetching grouped data:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load grouped data')
+        // Fallback to mock data
+        setData(mockData[modelName] || [])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (groupByField) {
+      fetchData()
+    }
+  }, [modelName, groupByField, filters])
+
+  let displayData = data
+
+  // Apply filters if not using backend (fallback)
+  if (displayData.length === 0 && filters.length > 0) {
+    displayData = mockData[modelName]?.filter((row) =>
+      filters.every((filter) => applyFilter(row, filter))
+    ) || []
   }
 
   // Group data
   const grouped: Record<string, any[]> = {}
-  data.forEach((row) => {
+  displayData.forEach((row) => {
     const key = String(row[groupByField] || 'Other')
     if (!grouped[key]) {
       grouped[key] = []
@@ -132,68 +209,85 @@ export function GroupView({ modelName = 'users', groupByField = '', filters = []
 
   return (
     <div className="w-full">
-      {groups.map(([groupKey, groupData]) => (
-        <div key={groupKey} className="mb-1">
-          {/* Group Header */}
-          <button
-            onClick={() => toggleGroup(groupKey)}
-            className="w-full bg-gray-800 hover:bg-gray-750 px-6 py-4 flex items-center gap-3 border-b border-gray-700 transition cursor-pointer group"
-          >
-            <span className={`text-cyan-400 text-lg transition-transform ${expandedGroups.has(groupKey) ? 'rotate-90' : ''}`}>
-              ▶
-            </span>
-            <h3 className="text-base font-bold text-white capitalize flex-1 text-left">
-              {groupByField}: <span className="text-cyan-300">{groupKey}</span>
-            </h3>
-            <span className="text-xs font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded-full group-hover:text-cyan-300">
-              {groupData.length}
-            </span>
-          </button>
+      {loading && (
+        <div className="text-center py-8 text-gray-400">
+          <span className="inline-block animate-spin mr-2">⚙️</span>
+          Loading grouped data...
+        </div>
+      )}
 
-          {/* Group Content */}
-          {expandedGroups.has(groupKey) && (
-            <div className="bg-gray-900 border-b border-gray-700">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-800 border-b border-gray-700">
-                    {Object.keys(groupData[0] || {}).map((field) => (
-                      <th
-                        key={field}
-                        className="px-4 py-3 text-left text-xs font-bold text-cyan-400 uppercase tracking-wider"
-                      >
-                        {field.replace('_', ' ')}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {groupData.map((row, idx) => (
-                    <tr
-                      key={idx}
-                      className={`border-b border-gray-700 hover:bg-gray-800 transition ${
-                        idx % 2 === 0 ? 'bg-gray-900' : 'bg-gray-850'
-                      }`}
-                    >
-                      {Object.keys(row).map((field) => (
-                        <td key={`${idx}-${field}`} className="px-4 py-3 text-gray-200">
-                          {renderCellValue(row[field])}
-                        </td>
+      {error && (
+        <div className="p-4 bg-red-900 bg-opacity-20 border border-red-700 text-red-300 rounded">
+          ⚠️ {error}
+        </div>
+      )}
+
+      {!loading && !error && (
+        <>
+          {groups.map(([groupKey, groupData]) => (
+            <div key={groupKey} className="mb-1">
+              {/* Group Header */}
+              <button
+                onClick={() => toggleGroup(groupKey)}
+                className="w-full bg-gray-800 hover:bg-gray-750 px-6 py-4 flex items-center gap-3 border-b border-gray-700 transition cursor-pointer group"
+              >
+                <span className={`text-cyan-400 text-lg transition-transform ${expandedGroups.has(groupKey) ? 'rotate-90' : ''}`}>
+                  ▶
+                </span>
+                <h3 className="text-base font-bold text-white capitalize flex-1 text-left">
+                  {groupByField}: <span className="text-cyan-300">{groupKey}</span>
+                </h3>
+                <span className="text-xs font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded-full group-hover:text-cyan-300">
+                  {groupData.length}
+                </span>
+              </button>
+
+              {/* Group Content */}
+              {expandedGroups.has(groupKey) && (
+                <div className="bg-gray-900 border-b border-gray-700">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-800 border-b border-gray-700">
+                        {Object.keys(groupData[0] || {}).map((field) => (
+                          <th
+                            key={field}
+                            className="px-4 py-3 text-left text-xs font-bold text-cyan-400 uppercase tracking-wider"
+                          >
+                            {field.replace('_', ' ')}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {groupData.map((row, idx) => (
+                        <tr
+                          key={idx}
+                          className={`border-b border-gray-700 hover:bg-gray-800 transition ${
+                            idx % 2 === 0 ? 'bg-gray-900' : 'bg-gray-850'
+                          }`}
+                        >
+                          {Object.keys(row).map((field) => (
+                            <td key={`${idx}-${field}`} className="px-4 py-3 text-gray-200">
+                              {renderCellValue(row[field])}
+                            </td>
+                          ))}
+                        </tr>
                       ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {groups.length === 0 && (
+            <div className="text-center py-16 bg-gray-800 rounded-lg border border-gray-700">
+              <p className="text-xl text-gray-400 font-semibold">
+                {filters.length > 0 ? '🔍 No data matches the applied filters' : '📭 No data available'}
+              </p>
             </div>
           )}
-        </div>
-      ))}
-
-      {groups.length === 0 && (
-        <div className="text-center py-16 bg-gray-800 rounded-lg border border-gray-700">
-          <p className="text-xl text-gray-400 font-semibold">
-            {filters.length > 0 ? '🔍 No data matches the applied filters' : '📭 No data available'}
-          </p>
-        </div>
+        </>
       )}
     </div>
   )
