@@ -10,6 +10,42 @@ import (
 	"udv/internal/planner"
 )
 
+// getPostgreSQLType returns the PostgreSQL type cast string for a given FieldType
+func getPostgreSQLType(fieldType planner.FieldType) string {
+	switch fieldType {
+	case planner.TypeUUID:
+		return "uuid"
+	case planner.TypeJSON:
+		return "jsonb"
+	case planner.TypeBinary:
+		return "bytea"
+	case planner.TypeTimestamp, planner.TypeDate, planner.TypeDateTime:
+		return "timestamp"
+	// For other types, PostgreSQL can usually infer from context
+	default:
+		return ""
+	}
+}
+
+// needsTypeCasting returns true if the field type needs explicit type casting in SQL
+func needsTypeCasting(fieldType planner.FieldType) bool {
+	switch fieldType {
+	case planner.TypeUUID, planner.TypeJSON, planner.TypeBinary, planner.TypeTimestamp:
+		return true
+	default:
+		return false
+	}
+}
+
+// addTypeCast adds PostgreSQL type casting to a parameterized value if needed
+func addTypeCast(paramPlaceholder string, fieldType planner.FieldType) string {
+	pgType := getPostgreSQLType(fieldType)
+	if pgType == "" {
+		return paramPlaceholder
+	}
+	return fmt.Sprintf("$%s::%s", strings.TrimPrefix(paramPlaceholder, "$"), pgType)
+}
+
 // QueryBuilder builds parameterized PostgreSQL queries from query plans
 type QueryBuilder struct {
 	params     []interface{}
@@ -146,7 +182,11 @@ func (qb *QueryBuilder) buildComparisonFilter(f *planner.ComparisonFilterIR) (st
 		}
 		qb.paramCount++
 		qb.params = append(qb.params, f.Value.Value)
-		return fmt.Sprintf("%s = $%d", colName, qb.paramCount), nil
+		paramPlaceholder := fmt.Sprintf("$%d", qb.paramCount)
+		if needsTypeCasting(f.Left.DataType) {
+			paramPlaceholder = addTypeCast(paramPlaceholder, f.Left.DataType)
+		}
+		return fmt.Sprintf("%s = %s", colName, paramPlaceholder), nil
 
 	case dsl.OpNotEqual:
 		if f.Value == nil {
@@ -154,7 +194,11 @@ func (qb *QueryBuilder) buildComparisonFilter(f *planner.ComparisonFilterIR) (st
 		}
 		qb.paramCount++
 		qb.params = append(qb.params, f.Value.Value)
-		return fmt.Sprintf("%s != $%d", colName, qb.paramCount), nil
+		paramPlaceholder := fmt.Sprintf("$%d", qb.paramCount)
+		if needsTypeCasting(f.Left.DataType) {
+			paramPlaceholder = addTypeCast(paramPlaceholder, f.Left.DataType)
+		}
+		return fmt.Sprintf("%s != %s", colName, paramPlaceholder), nil
 
 	case dsl.OpGT:
 		if f.Value == nil {
@@ -194,7 +238,11 @@ func (qb *QueryBuilder) buildComparisonFilter(f *planner.ComparisonFilterIR) (st
 		}
 		qb.paramCount++
 		qb.params = append(qb.params, f.Value.Value)
-		return fmt.Sprintf("%s = ANY($%d)", colName, qb.paramCount), nil
+		paramPlaceholder := fmt.Sprintf("$%d", qb.paramCount)
+		if needsTypeCasting(f.Left.DataType) {
+			paramPlaceholder = addTypeCast(paramPlaceholder, f.Left.DataType)
+		}
+		return fmt.Sprintf("%s = ANY(%s)", colName, paramPlaceholder), nil
 
 	case dsl.OpNotIn:
 		if f.Value == nil {
@@ -202,7 +250,11 @@ func (qb *QueryBuilder) buildComparisonFilter(f *planner.ComparisonFilterIR) (st
 		}
 		qb.paramCount++
 		qb.params = append(qb.params, f.Value.Value)
-		return fmt.Sprintf("%s != ALL($%d)", colName, qb.paramCount), nil
+		paramPlaceholder := fmt.Sprintf("$%d", qb.paramCount)
+		if needsTypeCasting(f.Left.DataType) {
+			paramPlaceholder = addTypeCast(paramPlaceholder, f.Left.DataType)
+		}
+		return fmt.Sprintf("%s != ALL(%s)", colName, paramPlaceholder), nil
 
 	case dsl.OpIsNull:
 		return fmt.Sprintf("%s IS NULL", colName), nil

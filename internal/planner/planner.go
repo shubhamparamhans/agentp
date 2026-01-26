@@ -11,17 +11,30 @@ import (
 type FieldType string
 
 const (
+	// String types
 	TypeString    FieldType = "string"
+	
+	// Integer types
 	TypeInteger   FieldType = "integer"
 	TypeInt       FieldType = "int"
+	
+	// Numeric types
 	TypeFloat     FieldType = "float"
 	TypeDecimal   FieldType = "decimal"
+	
+	// Boolean type
 	TypeBoolean   FieldType = "boolean"
+	
+	// Date/Time types
 	TypeDateTime  FieldType = "datetime"
 	TypeTimestamp FieldType = "timestamp"
 	TypeDate      FieldType = "date"
+	TypeTime      FieldType = "time"
+	
+	// Special types (from data modelling processor)
 	TypeUUID      FieldType = "uuid"
 	TypeJSON      FieldType = "json"
+	TypeBinary    FieldType = "binary"
 )
 
 // ColumnRef represents a resolved column reference
