@@ -15,6 +15,7 @@ export interface QueryResponse {
   sql: string
   params: any[]
   data?: any[]
+  affected_rows?: number // For DELETE operations
   error?: string
   total?: number
   meta?: {
@@ -170,4 +171,61 @@ export function buildDSLQuery(
   }
 
   return query
+}
+
+/**
+ * Creates a new record
+ * @param modelName - The model name
+ * @param data - The data to insert
+ * @returns The created record
+ */
+export async function createRecord(
+  modelName: string,
+  data: Record<string, any>
+): Promise<QueryResponse> {
+  const query = {
+    operation: 'create',
+    model: modelName,
+    data: data,
+  }
+  return executeQuery(query)
+}
+
+/**
+ * Updates an existing record
+ * @param modelName - The model name
+ * @param id - The record ID
+ * @param data - The data to update (partial)
+ * @returns The updated record
+ */
+export async function updateRecord(
+  modelName: string,
+  id: string | number,
+  data: Record<string, any>
+): Promise<QueryResponse> {
+  const query = {
+    operation: 'update',
+    model: modelName,
+    id: id,
+    data: data,
+  }
+  return executeQuery(query)
+}
+
+/**
+ * Deletes a record
+ * @param modelName - The model name
+ * @param id - The record ID
+ * @returns The number of affected rows
+ */
+export async function deleteRecord(
+  modelName: string,
+  id: string | number
+): Promise<QueryResponse> {
+  const query = {
+    operation: 'delete',
+    model: modelName,
+    id: id,
+  }
+  return executeQuery(query)
 }

@@ -54,15 +54,28 @@ const (
 	SortDesc SortDirection = "desc"
 )
 
+// Operation represents the type of operation to perform
+type Operation string
+
+const (
+	OpSelect Operation = "select" // Default operation
+	OpCreate Operation = "create"
+	OpUpdate Operation = "update"
+	OpDelete Operation = "delete"
+)
+
 // Query represents a complete query specification
 type Query struct {
-	Model      string         `json:"model"`
-	Fields     []string       `json:"fields,omitempty"`
-	Filters    FilterExpr     `json:"filters,omitempty"`
-	GroupBy    []string       `json:"group_by,omitempty"`
-	Aggregates []Aggregate    `json:"aggregates,omitempty"`
-	Sort       []Sort         `json:"sort,omitempty"`
-	Pagination *Pagination    `json:"pagination,omitempty"`
+	Operation  Operation              `json:"operation,omitempty"`  // NEW: Operation type (defaults to "select")
+	Model      string                 `json:"model"`
+	Fields     []string               `json:"fields,omitempty"`
+	Filters    FilterExpr             `json:"filters,omitempty"`
+	GroupBy    []string               `json:"group_by,omitempty"`
+	Aggregates []Aggregate            `json:"aggregates,omitempty"`
+	Sort       []Sort                 `json:"sort,omitempty"`
+	Pagination *Pagination            `json:"pagination,omitempty"`
+	Data       map[string]interface{} `json:"data,omitempty"` // NEW: For create/update operations
+	ID         interface{}            `json:"id,omitempty"`   // NEW: For update/delete operations
 }
 
 // FilterExpr represents a filter expression (can be AND, OR, NOT, or atomic)
@@ -123,6 +136,11 @@ func (v *Validator) ValidateQuery(q *Query) error {
 		return fmt.Errorf("query is nil")
 	}
 
+	// Default to select operation if not specified (backward compatibility)
+	if q.Operation == "" {
+		q.Operation = OpSelect
+	}
+
 	// Validate model
 	if q.Model == "" {
 		return fmt.Errorf("model is required")
@@ -131,7 +149,21 @@ func (v *Validator) ValidateQuery(q *Query) error {
 		return fmt.Errorf("model not found: %s", q.Model)
 	}
 
-	// Validate fields
+	// Validate operation-specific requirements
+	switch q.Operation {
+	case OpCreate:
+		return v.validateCreate(q)
+	case OpUpdate:
+		return v.validateUpdate(q)
+	case OpDelete:
+		return v.validateDelete(q)
+	case OpSelect:
+		// Continue with existing validation for select
+	default:
+		return fmt.Errorf("invalid operation: %s", q.Operation)
+	}
+
+	// Validate fields (for select operations)
 	if err := v.validateFields(q.Model, q.Fields); err != nil {
 		return err
 	}
@@ -163,6 +195,65 @@ func (v *Validator) ValidateQuery(q *Query) error {
 		return err
 	}
 
+	return nil
+}
+
+// validateCreate validates a create operation
+func (v *Validator) validateCreate(q *Query) error {
+	if q.Data == nil || len(q.Data) == 0 {
+		return fmt.Errorf("data is required for create operation")
+	}
+
+	model := v.registry.GetModel(q.Model)
+	if model == nil {
+		return fmt.Errorf("model not found: %s", q.Model)
+	}
+
+	// Validate all fields in data exist in model
+	for fieldName := range q.Data {
+		if !v.registry.FieldExists(q.Model, fieldName) {
+			return fmt.Errorf("field not found in model %s: %s", q.Model, fieldName)
+		}
+	}
+
+	// Check required fields (non-nullable fields that don't have defaults)
+	// Note: This is a basic check - full validation would require checking for default values
+	fields, _ := v.registry.GetModelFields(q.Model)
+	for _, field := range fields {
+		if !field.Nullable && q.Data[field.Name] == nil {
+			// Field is required but not provided
+			return fmt.Errorf("required field missing: %s", field.Name)
+		}
+	}
+
+	return nil
+}
+
+// validateUpdate validates an update operation
+func (v *Validator) validateUpdate(q *Query) error {
+	if q.ID == nil && q.Filters == nil {
+		return fmt.Errorf("id or filters required for update operation")
+	}
+
+	if q.Data == nil || len(q.Data) == 0 {
+		return fmt.Errorf("data is required for update operation")
+	}
+
+	// Validate all fields being updated exist in model
+	for fieldName := range q.Data {
+		if !v.registry.FieldExists(q.Model, fieldName) {
+			return fmt.Errorf("field not found in model %s: %s", q.Model, fieldName)
+		}
+	}
+
+	return nil
+}
+
+// validateDelete validates a delete operation
+func (v *Validator) validateDelete(q *Query) error {
+	if q.ID == nil && q.Filters == nil {
+		return fmt.Errorf("id or filters required for delete operation")
+	}
 	return nil
 }
 

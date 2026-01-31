@@ -65,6 +65,28 @@ func (qb *QueryBuilder) BuildQuery(plan *planner.QueryPlan) (string, []interface
 	qb.params = []interface{}{}
 	qb.paramCount = 0
 
+	// Route to appropriate builder based on operation
+	operation := plan.Operation
+	if operation == "" {
+		operation = "select" // Default to select
+	}
+
+	switch operation {
+	case "create":
+		return qb.buildInsert(plan)
+	case "update":
+		return qb.buildUpdate(plan)
+	case "delete":
+		return qb.buildDelete(plan)
+	case "select", "":
+		return qb.buildSelect(plan)
+	default:
+		return "", nil, fmt.Errorf("unsupported operation: %s", operation)
+	}
+}
+
+// buildSelect builds a SELECT query (existing logic)
+func (qb *QueryBuilder) buildSelect(plan *planner.QueryPlan) (string, []interface{}, error) {
 	var parts []string
 
 	// 1. SELECT clause
@@ -102,6 +124,101 @@ func (qb *QueryBuilder) BuildQuery(plan *planner.QueryPlan) (string, []interface
 
 	// Join all parts
 	sql := strings.Join(parts, " ") + ";"
+
+	return sql, qb.params, nil
+}
+
+// buildInsert builds an INSERT query
+func (qb *QueryBuilder) buildInsert(plan *planner.QueryPlan) (string, []interface{}, error) {
+	if plan.Data == nil || len(plan.Data) == 0 {
+		return "", nil, fmt.Errorf("data is required for insert operation")
+	}
+
+	table := plan.RootModel.Table
+	fields := []string{}
+	placeholders := []string{}
+
+	for field, value := range plan.Data {
+		fields = append(fields, field)
+		qb.paramCount++
+		placeholders = append(placeholders, fmt.Sprintf("$%d", qb.paramCount))
+		qb.params = append(qb.params, value)
+	}
+
+	sql := fmt.Sprintf(
+		"INSERT INTO %s (%s) VALUES (%s) RETURNING *;",
+		table,
+		strings.Join(fields, ", "),
+		strings.Join(placeholders, ", "),
+	)
+
+	return sql, qb.params, nil
+}
+
+// buildUpdate builds an UPDATE query
+func (qb *QueryBuilder) buildUpdate(plan *planner.QueryPlan) (string, []interface{}, error) {
+	if plan.Data == nil || len(plan.Data) == 0 {
+		return "", nil, fmt.Errorf("data is required for update operation")
+	}
+
+	table := plan.RootModel.Table
+	sets := []string{}
+
+	for field, value := range plan.Data {
+		qb.paramCount++
+		sets = append(sets, fmt.Sprintf("%s = $%d", field, qb.paramCount))
+		qb.params = append(qb.params, value)
+	}
+
+	where := ""
+	if plan.ID != nil {
+		// Use ID for WHERE clause
+		qb.paramCount++
+		where = fmt.Sprintf("WHERE %s = $%d", plan.RootModel.PrimaryKey.ColumnName, qb.paramCount)
+		qb.params = append(qb.params, plan.ID)
+	} else if plan.Filters != nil {
+		// Use filters for WHERE clause
+		wherePart, err := qb.buildWhereClause(plan.Filters)
+		if err != nil {
+			return "", nil, err
+		}
+		where = wherePart
+	} else {
+		return "", nil, fmt.Errorf("id or filters required for update operation")
+	}
+
+	sql := fmt.Sprintf(
+		"UPDATE %s SET %s %s RETURNING *;",
+		table,
+		strings.Join(sets, ", "),
+		where,
+	)
+
+	return sql, qb.params, nil
+}
+
+// buildDelete builds a DELETE query
+func (qb *QueryBuilder) buildDelete(plan *planner.QueryPlan) (string, []interface{}, error) {
+	table := plan.RootModel.Table
+
+	where := ""
+	if plan.ID != nil {
+		// Use ID for WHERE clause
+		qb.paramCount++
+		where = fmt.Sprintf("WHERE %s = $%d", plan.RootModel.PrimaryKey.ColumnName, qb.paramCount)
+		qb.params = append(qb.params, plan.ID)
+	} else if plan.Filters != nil {
+		// Use filters for WHERE clause
+		wherePart, err := qb.buildWhereClause(plan.Filters)
+		if err != nil {
+			return "", nil, err
+		}
+		where = wherePart
+	} else {
+		return "", nil, fmt.Errorf("id or filters required for delete operation")
+	}
+
+	sql := fmt.Sprintf("DELETE FROM %s %s;", table, where)
 
 	return sql, qb.params, nil
 }

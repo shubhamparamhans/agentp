@@ -149,6 +149,7 @@ type Pagination struct {
 
 // QueryPlan represents the complete query plan IR
 type QueryPlan struct {
+	Operation  dsl.Operation         // NEW: Operation type
 	RootModel  *ModelRef
 	Select     []SelectExpr
 	Joins      []JoinPlan
@@ -157,6 +158,8 @@ type QueryPlan struct {
 	Aggregates []AggregateExpr
 	Sort       []SortExpr
 	Pagination Pagination
+	Data       map[string]interface{} // NEW: For create/update operations
+	ID         interface{}            // NEW: For update/delete operations
 }
 
 // ModelRef represents a model in the query plan
@@ -183,11 +186,20 @@ func (p *Planner) PlanQuery(q *dsl.Query) (*QueryPlan, error) {
 		return nil, fmt.Errorf("query is nil")
 	}
 
+	// Default to select operation if not specified
+	operation := q.Operation
+	if operation == "" {
+		operation = dsl.OpSelect
+	}
+
 	plan := &QueryPlan{
+		Operation:  operation, // NEW: Set operation
 		Select:     []SelectExpr{},
 		Joins:      []JoinPlan{},
 		Aggregates: []AggregateExpr{},
 		Sort:       []SortExpr{},
+		Data:       q.Data, // NEW: Pass data for create/update
+		ID:         q.ID,   // NEW: Pass id for update/delete
 	}
 
 	// 1. Create root model reference
@@ -202,6 +214,13 @@ func (p *Planner) PlanQuery(q *dsl.Query) (*QueryPlan, error) {
 		Table:      model.Table,
 		Alias:      "t0",
 		PrimaryKey: rootPrimaryKey,
+	}
+
+	// For create/update/delete operations, we can skip some planning steps
+	if operation == dsl.OpCreate || operation == dsl.OpUpdate || operation == dsl.OpDelete {
+		// Set default pagination for mutation operations
+		plan.Pagination = Pagination{Limit: 1, Offset: 0}
+		return plan, nil
 	}
 
 	// 2. Process SELECT clause

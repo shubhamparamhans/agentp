@@ -90,6 +90,7 @@ func (a *API) handleQuery(w http.ResponseWriter, r *http.Request) {
     }
     // Decode into a raw structure so we can handle the FilterExpr interface
     type rawQuery struct {
+        Operation  string          `json:"operation,omitempty"`  // NEW
         Model      string          `json:"model"`
         Fields     []string        `json:"fields,omitempty"`
         Filters    json.RawMessage `json:"filters,omitempty"`
@@ -97,6 +98,8 @@ func (a *API) handleQuery(w http.ResponseWriter, r *http.Request) {
         Aggregates []dsl.Aggregate `json:"aggregates,omitempty"`
         Sort       []dsl.Sort      `json:"sort,omitempty"`
         Pagination *dsl.Pagination `json:"pagination,omitempty"`
+        Data       map[string]interface{} `json:"data,omitempty"` // NEW
+        ID         interface{}            `json:"id,omitempty"`   // NEW
     }
 
     var rq rawQuery
@@ -105,13 +108,22 @@ func (a *API) handleQuery(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // Parse operation (default to "select" for backward compatibility)
+    operation := dsl.OpSelect
+    if rq.Operation != "" {
+        operation = dsl.Operation(rq.Operation)
+    }
+
     q := dsl.Query{
+        Operation:  operation, // NEW
         Model:      rq.Model,
         Fields:     rq.Fields,
         GroupBy:    rq.GroupBy,
         Aggregates: rq.Aggregates,
         Sort:       rq.Sort,
         Pagination: rq.Pagination,
+        Data:       rq.Data, // NEW
+        ID:         rq.ID,   // NEW
     }
 
     // Parse filters if provided
@@ -155,12 +167,22 @@ func (a *API) handleQuery(w http.ResponseWriter, r *http.Request) {
 
     // Execute query if database is available
     if a.db != nil {
-        rows, err := a.db.ExecuteAndFetchRows(sql, params...)
-        if err != nil {
-            fmt.Printf("Warning: Failed to execute query: %v\n", err)
-            // Don't fail the request - still return SQL and params
-            // Frontend can see what query would have been executed
+        if operation == dsl.OpDelete {
+            // DELETE returns affected rows count
+            result, err := a.db.Exec(sql, params...)
+            if err != nil {
+                http.Error(w, fmt.Sprintf("execution error: %v", err), http.StatusInternalServerError)
+                return
+            }
+            affectedRows, _ := result.RowsAffected()
+            resp["affected_rows"] = affectedRows
         } else {
+            // CREATE, UPDATE, SELECT return data
+            rows, err := a.db.ExecuteAndFetchRows(sql, params...)
+            if err != nil {
+                http.Error(w, fmt.Sprintf("execution error: %v", err), http.StatusInternalServerError)
+                return
+            }
             resp["data"] = rows
         }
     }
