@@ -393,7 +393,7 @@ func main() {
         db, err = mongodb.Connect(uri, dbName)
         builder = mongodb.NewQueryBuilder()
     case "postgres", "":
-        dsn := os.Getenv("POSTGRES_DSN")
+        dsn := os.Getenv("POSTGRES_DSN"
         db, err = postgres.Connect(dsn)
         builder = postgres.NewQueryBuilder()
     default:
