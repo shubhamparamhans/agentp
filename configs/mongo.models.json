@@ -1,0 +1,518 @@
+{
+  "models": [
+    {
+      "name": "chatrooms",
+      "table": "chatrooms",
+      "primaryKey": "_id",
+      "fields": [
+        {
+          "name": "seat6.xauthid",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat1.xauthid",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat2.image",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat3.userName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat8",
+          "type": "json",
+          "nullable": false
+        },
+        {
+          "name": "__v",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "seat7.mute",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "themeMask",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat2.status",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat2.userName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat6.mute",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat1",
+          "type": "json",
+          "nullable": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "seat2.mute",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat2.muteByAdmin",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat3.xauthid",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat8.image",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat8.sitTime",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "members",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "updated_date",
+          "type": "timestamp",
+          "nullable": false
+        },
+        {
+          "name": "seat4.userName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat4.xauthid",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "xauthid",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat3.image",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat8.userName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat6",
+          "type": "json",
+          "nullable": false
+        },
+        {
+          "name": "cityName",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "seat2.xauthid",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat2.sitTime",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat3.muteByAdmin",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat8.mute",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "seat1.image",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat3",
+          "type": "json",
+          "nullable": false
+        },
+        {
+          "name": "seat3.status",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "created_date",
+          "type": "timestamp",
+          "nullable": false
+        },
+        {
+          "name": "seat7",
+          "type": "json",
+          "nullable": false
+        },
+        {
+          "name": "seat3.mute",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat5",
+          "type": "json",
+          "nullable": false
+        },
+        {
+          "name": "seat6.sitTime",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat6.userName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat4",
+          "type": "json",
+          "nullable": false
+        },
+        {
+          "name": "seat8.muteByAdmin",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "roomName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat5.status",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat6.status",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat1.sitTime",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat1.status",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat4.status",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat4.image",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat7.status",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat2",
+          "type": "json",
+          "nullable": false
+        },
+        {
+          "name": "seat3.sitTime",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat5.userName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "themeCategory",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat4.muteByAdmin",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat4.sitTime",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "roomMessage",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat5.sitTime",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat7.sitTime",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "isDefault",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "seat5.muteByAdmin",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat5.xauthid",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat8.status",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat1.muteByAdmin",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat7.image",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat5.image",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "room_id",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "seat1.userName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat1.mute",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat7.userName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "profileImageUrl",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "userId",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat6.image",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat4.mute",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat7.muteByAdmin",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat7.xauthid",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat8.xauthid",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat5.mute",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "seat6.muteByAdmin",
+          "type": "string",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "name": "users",
+      "table": "users",
+      "primaryKey": "_id",
+      "fields": [
+        {
+          "name": "seat_no",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "nickName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "lastLogin",
+          "type": "timestamp",
+          "nullable": false
+        },
+        {
+          "name": "lastName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "xauthToken",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "gender",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "profileImageUrl",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "firstName",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "following",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "socket_id",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "room_id",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "__v",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "follower",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": false
+        },
+        {
+          "name": "level",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": false
+        },
+        {
+          "name": "xauthid",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "userid",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "onSeatTime",
+          "type": "integer",
+          "nullable": false
+        }
+      ]
+    }
+  ]
+}

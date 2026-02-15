@@ -16,6 +16,7 @@ export interface AppState {
   models: Model[]
   selectedModel: Model | null
   query: QueryState
+  databaseType?: 'mongo' | 'postgres'
 }
 
 export interface QueryState {

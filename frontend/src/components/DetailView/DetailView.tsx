@@ -1,4 +1,6 @@
-import React from 'react'
+import React, { useContext } from 'react'
+import { ObjectRenderer } from '../ObjectRenderer/ObjectRenderer'
+import { AppContext } from '../../state/AppContext'
 
 interface DetailViewProps {
   modelName: string
@@ -8,6 +10,8 @@ interface DetailViewProps {
 }
 
 const DetailView: React.FC<DetailViewProps> = ({ modelName, selectedRow, isOpen, onClose }) => {
+  const { state } = useContext(AppContext)
+
   if (!selectedRow) return null
 
   const fields = Object.entries(selectedRow)
@@ -53,7 +57,10 @@ const DetailView: React.FC<DetailViewProps> = ({ modelName, selectedRow, isOpen,
                 {key.replace(/_/g, ' ')}
               </label>
               <div className="text-white text-base break-words">
-                {typeof value === 'number' ? value.toLocaleString() : String(value)}
+                <ObjectRenderer 
+                  value={value} 
+                  isMongoDb={state.databaseType === 'mongo'}
+                />
               </div>
             </div>
           ))}
