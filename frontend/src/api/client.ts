@@ -25,6 +25,23 @@ export interface QueryResponse {
   }
 }
 
+export interface InfoResponse {
+  database_type?: 'mongo' | 'postgres'
+  status?: string
+}
+
+export async function fetchDatabaseInfo(): Promise<InfoResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/info`)
+    if (!response.ok) {
+      return { database_type: 'postgres' }
+    }
+    return response.json()
+  } catch {
+    return { database_type: 'postgres' }
+  }
+}
+
 export async function fetchModels(): Promise<Model[]> {
   const response = await fetch(`${API_BASE}/models`)
   if (!response.ok) {

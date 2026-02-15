@@ -1,5 +1,5 @@
 // ListView Component
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import {
   executeQuery,
   buildDSLQuery,
@@ -8,6 +8,8 @@ import {
   type Sort,
 } from '../../api/client'
 import { Pagination } from '../Pagination/Pagination'
+import { ObjectRenderer } from '../ObjectRenderer/ObjectRenderer'
+import { AppContext } from '../../state/AppContext'
 
 interface Filter {
   id: string
@@ -27,7 +29,6 @@ interface ListViewProps {
   columnSearchField?: string
   onEdit?: (row: Record<string, any>) => void
   onDelete?: (row: Record<string, any>) => void
-  primaryKey?: string
 }
 
 const mockData: Record<string, any[]> = {
@@ -79,8 +80,8 @@ export function ListView({
   columnSearchField = '',
   onEdit,
   onDelete,
-  primaryKey = 'id',
 }: ListViewProps) {
+  const { state } = useContext(AppContext)
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -299,7 +300,10 @@ export function ListView({
                             String(row[column] ?? ''),
                             searchQuery || columnSearchQuery
                           )
-                        : String(row[column] ?? '')}
+                        : <ObjectRenderer 
+                            value={row[column] ?? ''} 
+                            isMongoDb={state.databaseType === 'mongo'}
+                          />}
                     </td>
                   ))}
                   {(onEdit || onDelete) && (

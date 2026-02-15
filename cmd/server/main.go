@@ -103,7 +103,7 @@ func main() {
 	})
 
 	// Register API routes
-	apiSrv := api.New(registry, db, builder)
+	apiSrv := api.NewWithType(registry, db, builder, dbType)
 	apiSrv.RegisterRoutes(mux)
 
 	// CORS middleware

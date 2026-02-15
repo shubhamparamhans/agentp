@@ -13,28 +13,62 @@ import (
 
 // API bundles dependencies for HTTP handlers
 type API struct {
-	registry  *schema.Registry
-	validator *dsl.Validator
-	planner   *planner.Planner
-	builder   adapter.QueryBuilder
-	db        adapter.Database
+	registry     *schema.Registry
+	validator    *dsl.Validator
+	planner      *planner.Planner
+	builder      adapter.QueryBuilder
+	db           adapter.Database
+	databaseType string
 }
 
 // New creates a new API instance with optional database connection
 func New(reg *schema.Registry, db adapter.Database, builder adapter.QueryBuilder) *API {
 	return &API{
-		registry:  reg,
-		validator: dsl.NewValidator(reg),
-		planner:   planner.NewPlanner(reg),
-		builder:   builder,
-		db:        db,
+		registry:     reg,
+		validator:    dsl.NewValidator(reg),
+		planner:      planner.NewPlanner(reg),
+		builder:      builder,
+		db:           db,
+		databaseType: "postgres", // default
+	}
+}
+
+// NewWithType creates a new API instance with database type
+func NewWithType(reg *schema.Registry, db adapter.Database, builder adapter.QueryBuilder, dbType string) *API {
+	return &API{
+		registry:     reg,
+		validator:    dsl.NewValidator(reg),
+		planner:      planner.NewPlanner(reg),
+		builder:      builder,
+		db:           db,
+		databaseType: dbType,
 	}
 }
 
 // RegisterRoutes registers HTTP handlers onto the provided mux
 func (a *API) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("/info", a.handleInfo)
 	mux.HandleFunc("/models", a.handleModels)
 	mux.HandleFunc("/query", a.handleQuery)
+}
+
+// handleInfo returns information about the API and database
+func (a *API) handleInfo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	type infoResp struct {
+		DatabaseType string `json:"database_type"`
+		Status       string `json:"status"`
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(infoResp{
+		DatabaseType: a.databaseType,
+		Status:       "ok",
+	})
 }
 
 // handleModels returns a JSON list of models and their fields

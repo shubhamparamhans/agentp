@@ -1,7 +1,7 @@
 // GroupView Component
 import { useState, useEffect } from 'react'
 import type React from 'react'
-import { executeQuery, buildDSLQuery, buildSearchQuery, type QueryResponse } from '../../api/client'
+import { executeQuery, buildDSLQuery, type QueryResponse } from '../../api/client'
 
 interface Filter {
   id: string
