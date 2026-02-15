@@ -11,16 +11,16 @@ type FilterOperator string
 
 const (
 	// Comparison operators
-	OpEqual      FilterOperator = "="
-	OpNotEqual   FilterOperator = "!="
-	OpGT         FilterOperator = ">"
-	OpGTE        FilterOperator = ">="
-	OpLT         FilterOperator = "<"
-	OpLTE        FilterOperator = "<="
-	OpIn         FilterOperator = "in"
-	OpNotIn      FilterOperator = "not_in"
-	OpIsNull     FilterOperator = "is_null"
-	OpNotNull    FilterOperator = "not_null"
+	OpEqual    FilterOperator = "="
+	OpNotEqual FilterOperator = "!="
+	OpGT       FilterOperator = ">"
+	OpGTE      FilterOperator = ">="
+	OpLT       FilterOperator = "<"
+	OpLTE      FilterOperator = "<="
+	OpIn       FilterOperator = "in"
+	OpNotIn    FilterOperator = "not_in"
+	OpIsNull   FilterOperator = "is_null"
+	OpNotNull  FilterOperator = "not_null"
 
 	// String operators
 	OpLike       FilterOperator = "like"
@@ -66,7 +66,7 @@ const (
 
 // Query represents a complete query specification
 type Query struct {
-	Operation  Operation              `json:"operation,omitempty"`  // NEW: Operation type (defaults to "select")
+	Operation  Operation              `json:"operation,omitempty"` // NEW: Operation type (defaults to "select")
 	Model      string                 `json:"model"`
 	Fields     []string               `json:"fields,omitempty"`
 	Filters    FilterExpr             `json:"filters,omitempty"`
@@ -94,9 +94,9 @@ func (l *LogicalFilter) isFilterExpr() {}
 
 // ComparisonFilter represents a single field comparison
 type ComparisonFilter struct {
-	Field string        `json:"field"`
+	Field string         `json:"field"`
 	Op    FilterOperator `json:"op"`
-	Value interface{}   `json:"value,omitempty"`
+	Value interface{}    `json:"value,omitempty"`
 }
 
 func (c *ComparisonFilter) isFilterExpr() {}
@@ -217,9 +217,14 @@ func (v *Validator) validateCreate(q *Query) error {
 	}
 
 	// Check required fields (non-nullable fields that don't have defaults)
+	// Skip the primary key field as it's typically auto-generated
 	// Note: This is a basic check - full validation would require checking for default values
 	fields, _ := v.registry.GetModelFields(q.Model)
 	for _, field := range fields {
+		// Skip primary key fields (they're typically auto-generated)
+		if field.Name == model.PrimaryKey {
+			continue
+		}
 		if !field.Nullable && q.Data[field.Name] == nil {
 			// Field is required but not provided
 			return fmt.Errorf("required field missing: %s", field.Name)
@@ -360,14 +365,14 @@ func (v *Validator) validateOperatorForType(op FilterOperator, fieldType string,
 
 	// Comparison operators
 	comparisonOps := map[FilterOperator]bool{
-		OpEqual:   true,
+		OpEqual:    true,
 		OpNotEqual: true,
-		OpGT:      true,
-		OpGTE:     true,
-		OpLT:      true,
-		OpLTE:     true,
-		OpBefore:  true,
-		OpAfter:   true,
+		OpGT:       true,
+		OpGTE:      true,
+		OpLT:       true,
+		OpLTE:      true,
+		OpBefore:   true,
+		OpAfter:    true,
 	}
 
 	if comparisonOps[op] {

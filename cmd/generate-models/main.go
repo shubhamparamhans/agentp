@@ -7,8 +7,9 @@ import (
 	"log"
 	"os"
 
-	_ "github.com/lib/pq"
 	"udv/internal/schema_processor"
+
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -75,7 +76,7 @@ func main() {
 }
 
 func printHelp() {
-	fmt.Println(`
+	fmt.Print(`
 Universal Data Viewer - Schema Processor CLI
 
 USAGE:

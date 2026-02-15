@@ -1,8 +1,257 @@
 {
   "models": [
     {
+      "name": "addresses",
+      "table": "addresses",
+      "primaryKey": "id",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "address_line",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "city",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "lat",
+          "type": "decimal",
+          "nullable": true
+        },
+        {
+          "name": "lng",
+          "type": "decimal",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "categories",
+      "table": "categories",
+      "primaryKey": "id",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "deliveries",
+      "table": "deliveries",
+      "primaryKey": "id",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "partner_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "pickup_time",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "delivered_time",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "delivery_partners",
+      "table": "delivery_partners",
+      "primaryKey": "id",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "phone",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "inventory",
+      "table": "inventory",
+      "primaryKey": "id",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "store_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "product_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "selling_price",
+          "type": "decimal",
+          "nullable": true
+        },
+        {
+          "name": "stock",
+          "type": "integer",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "order_items",
+      "table": "order_items",
+      "primaryKey": "id",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "product_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "quantity",
+          "type": "integer",
+          "nullable": true
+        },
+        {
+          "name": "price",
+          "type": "decimal",
+          "nullable": true
+        }
+      ]
+    },
+    {
       "name": "orders",
       "table": "orders",
+      "primaryKey": "id",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "address_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "store_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "payment",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "item_total",
+          "type": "decimal",
+          "nullable": true
+        },
+        {
+          "name": "delivery_fee",
+          "type": "decimal",
+          "nullable": true
+        },
+        {
+          "name": "platform_fee",
+          "type": "decimal",
+          "nullable": true
+        },
+        {
+          "name": "grand_total",
+          "type": "decimal",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "orders-1",
+      "table": "orders-1",
       "primaryKey": "id",
       "fields": [
         {
@@ -38,8 +287,119 @@
       ]
     },
     {
+      "name": "products",
+      "table": "products",
+      "primaryKey": "id",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "category_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "brand",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "weight",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "mrp",
+          "type": "decimal",
+          "nullable": true
+        },
+        {
+          "name": "image",
+          "type": "string",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "stores",
+      "table": "stores",
+      "primaryKey": "id",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "area",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "lat",
+          "type": "decimal",
+          "nullable": true
+        },
+        {
+          "name": "lng",
+          "type": "decimal",
+          "nullable": true
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "nullable": true
+        }
+      ]
+    },
+    {
       "name": "users",
       "table": "users",
+      "primaryKey": "id",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "phone",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "name": "users-1",
+      "table": "users-1",
       "primaryKey": "id",
       "fields": [
         {
