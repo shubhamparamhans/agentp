@@ -96,11 +96,6 @@ export function DataViewer() {
     setSearchInput('')
   }
 
-  const handleClearColumnSearch = () => {
-    setColumnSearchInput('')
-    setSelectedSearchColumn('')
-  }
-
   // CRUD handlers
   const handleCreate = () => {
     setShowCreateForm(true)
@@ -384,7 +379,6 @@ export function DataViewer() {
                           columnSearchField={searchMode === 'column' ? selectedSearchColumn : ''}
                           onEdit={handleEdit}
                           onDelete={handleDelete}
-                          primaryKey={currentModel?.primary_key || 'id'}
                           key={refreshTrigger}
                         />
                       </div>

@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	"udv/internal/adapter"
+
 	_ "github.com/lib/pq"
 )
 
@@ -11,6 +13,9 @@ import (
 type Database struct {
 	db *sql.DB
 }
+
+// Compile-time assertion that Database implements adapter.Database interface
+var _ adapter.Database = (*Database)(nil)
 
 // Connect opens a connection to a PostgreSQL database using a DSN
 func Connect(dsn string) (*Database, error) {
@@ -32,6 +37,11 @@ func (d *Database) Close() error {
 	return d.db.Close()
 }
 
+// Ping checks the connection to the database
+func (d *Database) Ping() error {
+	return d.db.Ping()
+}
+
 // Query executes a parameterized query and returns rows
 func (d *Database) Query(sql string, args ...interface{}) (*sql.Rows, error) {
 	return d.db.Query(sql, args...)
@@ -43,12 +53,27 @@ func (d *Database) QueryRow(sql string, args ...interface{}) *sql.Row {
 }
 
 // Exec executes a query that doesn't return rows
-func (d *Database) Exec(sql string, args ...interface{}) (sql.Result, error) {
-	return d.db.Exec(sql, args...)
+func (d *Database) Exec(query interface{}, args ...interface{}) (adapter.ExecResult, error) {
+	sql, ok := query.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected query to be string, got %T", query)
+	}
+
+	result, err := d.db.Exec(sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("exec failed: %w", err)
+	}
+
+	return &PostgresExecResult{result: result}, nil
 }
 
-// ExecuteAndFetchRows executes a query and returns results as []map[string]interface{}
-func (d *Database) ExecuteAndFetchRows(sql string, args ...interface{}) ([]map[string]interface{}, error) {
+// ExecuteQuery executes a query and returns results as []map[string]interface{}
+func (d *Database) ExecuteQuery(query interface{}, args ...interface{}) ([]map[string]interface{}, error) {
+	sql, ok := query.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected query to be string, got %T", query)
+	}
+
 	rows, err := d.db.Query(sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("query execution failed: %w", err)
@@ -95,4 +120,19 @@ func (d *Database) ExecuteAndFetchRows(sql string, args ...interface{}) ([]map[s
 	}
 
 	return results, nil
+}
+
+// ExecuteAndFetchRows is kept for backward compatibility
+func (d *Database) ExecuteAndFetchRows(sql string, args ...interface{}) ([]map[string]interface{}, error) {
+	return d.ExecuteQuery(sql, args...)
+}
+
+// PostgresExecResult wraps sql.Result to implement adapter.ExecResult
+type PostgresExecResult struct {
+	result sql.Result
+}
+
+// RowsAffected returns the number of rows affected by the operation
+func (r *PostgresExecResult) RowsAffected() (int64, error) {
+	return r.result.RowsAffected()
 }

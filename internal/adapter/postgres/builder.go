@@ -53,13 +53,13 @@ type QueryBuilder struct {
 }
 
 // BuildQuery converts a QueryPlan into a parameterized SQL query
-func (qb *QueryBuilder) BuildQuery(plan *planner.QueryPlan) (string, []interface{}, error) {
+func (qb *QueryBuilder) BuildQuery(plan *planner.QueryPlan) (interface{}, []interface{}, error) {
 	if plan == nil {
-		return "", nil, fmt.Errorf("query plan is nil")
+		return nil, nil, fmt.Errorf("query plan is nil")
 	}
 
 	if plan.RootModel == nil {
-		return "", nil, fmt.Errorf("root model is nil")
+		return nil, nil, fmt.Errorf("root model is nil")
 	}
 
 	qb.params = []interface{}{}
@@ -73,15 +73,19 @@ func (qb *QueryBuilder) BuildQuery(plan *planner.QueryPlan) (string, []interface
 
 	switch operation {
 	case "create":
-		return qb.buildInsert(plan)
+		sql, args, err := qb.buildInsert(plan)
+		return sql, args, err
 	case "update":
-		return qb.buildUpdate(plan)
+		sql, args, err := qb.buildUpdate(plan)
+		return sql, args, err
 	case "delete":
-		return qb.buildDelete(plan)
+		sql, args, err := qb.buildDelete(plan)
+		return sql, args, err
 	case "select", "":
-		return qb.buildSelect(plan)
+		sql, args, err := qb.buildSelect(plan)
+		return sql, args, err
 	default:
-		return "", nil, fmt.Errorf("unsupported operation: %s", operation)
+		return nil, nil, fmt.Errorf("unsupported operation: %s", operation)
 	}
 }
 
