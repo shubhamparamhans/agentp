@@ -48,12 +48,16 @@ func TestBuildQuery_SimpleSelect(t *testing.T) {
 	}
 
 	builder := NewQueryBuilder()
-	sql, _, err := builder.BuildQuery(plan)
+	sqlIface, _, err := builder.BuildQuery(plan)
 
 	if err != nil {
 		t.Errorf("BuildQuery error: %v", err)
 	}
 
+	sql, ok := sqlIface.(string)
+	if !ok {
+		t.Fatalf("expected sql string, got %T", sqlIface)
+	}
 	if !strings.Contains(sql, "SELECT") {
 		t.Errorf("SQL missing SELECT: %s", sql)
 	}
@@ -87,12 +91,16 @@ func TestBuildQuery_WithFilter(t *testing.T) {
 	}
 
 	builder := NewQueryBuilder()
-	sql, params, err := builder.BuildQuery(plan)
+	sqlIface, params, err := builder.BuildQuery(plan)
 
 	if err != nil {
 		t.Errorf("BuildQuery error: %v", err)
 	}
 
+	sql, ok := sqlIface.(string)
+	if !ok {
+		t.Fatalf("expected sql string, got %T", sqlIface)
+	}
 	if !strings.Contains(sql, "WHERE") {
 		t.Errorf("SQL missing WHERE: %s", sql)
 	}
@@ -128,12 +136,16 @@ func TestBuildQuery_WithLogicalFilter(t *testing.T) {
 	}
 
 	builder := NewQueryBuilder()
-	sql, params, err := builder.BuildQuery(plan)
+	sqlIface, params, err := builder.BuildQuery(plan)
 
 	if err != nil {
 		t.Errorf("BuildQuery error: %v", err)
 	}
 
+	sql, ok := sqlIface.(string)
+	if !ok {
+		t.Fatalf("expected sql string, got %T", sqlIface)
+	}
 	if !strings.Contains(sql, "AND") {
 		t.Errorf("SQL missing AND: %s", sql)
 	}
@@ -162,12 +174,16 @@ func TestBuildQuery_WithGroupByAndAggregate(t *testing.T) {
 	}
 
 	builder := NewQueryBuilder()
-	sql, params, err := builder.BuildQuery(plan)
+	sqlIface, params, err := builder.BuildQuery(plan)
 
 	if err != nil {
 		t.Errorf("BuildQuery error: %v", err)
 	}
 
+	sql, ok := sqlIface.(string)
+	if !ok {
+		t.Fatalf("expected sql string, got %T", sqlIface)
+	}
 	if !strings.Contains(sql, "GROUP BY") {
 		t.Errorf("SQL missing GROUP BY: %s", sql)
 	}
@@ -204,12 +220,16 @@ func TestBuildQuery_WithSort(t *testing.T) {
 	}
 
 	builder := NewQueryBuilder()
-	sql, _, err := builder.BuildQuery(plan)
+	sqlIface, _, err := builder.BuildQuery(plan)
 
 	if err != nil {
 		t.Errorf("BuildQuery error: %v", err)
 	}
 
+	sql, ok := sqlIface.(string)
+	if !ok {
+		t.Fatalf("expected sql string, got %T", sqlIface)
+	}
 	if !strings.Contains(sql, "ORDER BY") {
 		t.Errorf("SQL missing ORDER BY: %s", sql)
 	}
@@ -239,12 +259,16 @@ func TestBuildQuery_WithPagination(t *testing.T) {
 	}
 
 	builder := NewQueryBuilder()
-	sql, params, err := builder.BuildQuery(plan)
+	sqlIface, params, err := builder.BuildQuery(plan)
 
 	if err != nil {
 		t.Errorf("BuildQuery error: %v", err)
 	}
 
+	sql, ok := sqlIface.(string)
+	if !ok {
+		t.Fatalf("expected sql string, got %T", sqlIface)
+	}
 	if !strings.Contains(sql, "LIMIT $1 OFFSET $2") {
 		t.Errorf("SQL missing correct LIMIT/OFFSET: %s", sql)
 	}
@@ -305,12 +329,16 @@ func TestBuildQuery_FilterOperators(t *testing.T) {
 			}
 
 			builder := NewQueryBuilder()
-			sql, _, err := builder.BuildQuery(plan)
+			sqlIface, _, err := builder.BuildQuery(plan)
 
 			if err != nil {
 				t.Errorf("BuildQuery error: %v", err)
 			}
 
+			sql, ok := sqlIface.(string)
+			if !ok {
+				t.Fatalf("expected sql string, got %T", sqlIface)
+			}
 			if !strings.Contains(sql, tt.expected) {
 				t.Errorf("SQL missing expected operator %s: %s", tt.expected, sql)
 			}
@@ -351,10 +379,15 @@ func TestBuildQuery_ComplexQuery(t *testing.T) {
 	}
 
 	builder := NewQueryBuilder()
-	sql, params, err := builder.BuildQuery(plan)
+	sqlIface, params, err := builder.BuildQuery(plan)
 
 	if err != nil {
 		t.Errorf("BuildQuery error: %v", err)
+	}
+
+	sql, ok := sqlIface.(string)
+	if !ok {
+		t.Fatalf("expected sql string, got %T", sqlIface)
 	}
 
 	// Verify all parts are present
@@ -381,10 +414,10 @@ func TestBuildQuery_NilPlan(t *testing.T) {
 
 func TestBuildQuery_StringOperators(t *testing.T) {
 	tests := []struct {
-		name      string
-		op        dsl.FilterOperator
-		value     string
-		contains  string
+		name     string
+		op       dsl.FilterOperator
+		value    string
+		contains string
 	}{
 		{"starts_with", dsl.OpStartsWith, "test", " LIKE $"},
 		{"ends_with", dsl.OpEndsWith, "test", " LIKE $"},
@@ -411,12 +444,16 @@ func TestBuildQuery_StringOperators(t *testing.T) {
 			}
 
 			builder := NewQueryBuilder()
-			sql, params, err := builder.BuildQuery(plan)
+			sqlIface, params, err := builder.BuildQuery(plan)
 
 			if err != nil {
 				t.Errorf("BuildQuery error: %v", err)
 			}
 
+			sql, ok := sqlIface.(string)
+			if !ok {
+				t.Fatalf("expected sql string, got %T", sqlIface)
+			}
 			if !strings.Contains(sql, tt.contains) {
 				t.Errorf("SQL missing expected operator: %s", sql)
 			}

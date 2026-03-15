@@ -71,9 +71,14 @@ func TestE2EQueryExecution(t *testing.T) {
 		}
 
 		builder := NewQueryBuilder()
-		sql, params, err := builder.BuildQuery(plan)
+		sqlIface, params, err := builder.BuildQuery(plan)
 		if err != nil {
 			t.Fatalf("SQL build error: %v", err)
+		}
+
+		sql, ok := sqlIface.(string)
+		if !ok {
+			t.Fatalf("expected sql string, got %T", sqlIface)
 		}
 
 		rows, err := db.Query(sql, params...)
@@ -117,11 +122,15 @@ func TestE2EQueryExecution(t *testing.T) {
 		}
 
 		builder := NewQueryBuilder()
-		sql, params, err := builder.BuildQuery(plan)
+		sqlIface, params, err := builder.BuildQuery(plan)
 		if err != nil {
 			t.Fatalf("SQL build error: %v", err)
 		}
 
+		sql, ok := sqlIface.(string)
+		if !ok {
+			t.Fatalf("expected sql string, got %T", sqlIface)
+		}
 		t.Logf("Generated SQL: %s", sql)
 		t.Logf("Parameters: %v", params)
 
@@ -167,11 +176,15 @@ func TestE2EQueryExecution(t *testing.T) {
 		}
 
 		builder := NewQueryBuilder()
-		sql, params, err := builder.BuildQuery(plan)
+		sqlIface, params, err := builder.BuildQuery(plan)
 		if err != nil {
 			t.Fatalf("SQL build error: %v", err)
 		}
 
+		sql, ok := sqlIface.(string)
+		if !ok {
+			t.Fatalf("expected sql string, got %T", sqlIface)
+		}
 		t.Logf("Generated SQL: %s", sql)
 
 		rows, err := db.Query(sql, params...)
@@ -212,9 +225,14 @@ func TestE2EQueryExecution(t *testing.T) {
 		}
 
 		builder := NewQueryBuilder()
-		sql, params, err := builder.BuildQuery(plan)
+		sqlIface, params, err := builder.BuildQuery(plan)
 		if err != nil {
 			t.Fatalf("SQL build error: %v", err)
+		}
+
+		sql, ok := sqlIface.(string)
+		if !ok {
+			t.Fatalf("expected sql string, got %T", sqlIface)
 		}
 
 		rows, err := db.Query(sql, params...)
@@ -264,9 +282,14 @@ func TestE2EQueryExecution(t *testing.T) {
 		}
 
 		builder := NewQueryBuilder()
-		sql, params, err := builder.BuildQuery(plan)
+		sqlIface, params, err := builder.BuildQuery(plan)
 		if err != nil {
 			t.Fatalf("SQL build error: %v", err)
+		}
+
+		sql, ok := sqlIface.(string)
+		if !ok {
+			t.Fatalf("expected sql string, got %T", sqlIface)
 		}
 
 		t.Logf("Complex SQL: %s", sql)
@@ -386,9 +409,13 @@ func TestE2EQueryWithDifferentOperators(t *testing.T) {
 			}
 
 			builder := NewQueryBuilder()
-			sql, params, err := builder.BuildQuery(plan)
+			sqlIface, params, err := builder.BuildQuery(plan)
 			if err != nil {
 				t.Fatalf("SQL build error: %v", err)
+			}
+			sql, ok := sqlIface.(string)
+			if !ok {
+				t.Fatalf("expected sql string, got %T", sqlIface)
 			}
 
 			rows, err := db.Query(sql, params...)

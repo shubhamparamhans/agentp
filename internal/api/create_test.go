@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"udv/internal/adapter/postgres"
 	"udv/internal/config"
 	"udv/internal/dsl"
 	"udv/internal/schema"
@@ -33,7 +34,7 @@ func TestCreateEndpoint_Simple(t *testing.T) {
 	reg := schema.NewRegistry()
 	reg.LoadFromConfig(cfg)
 
-	a := New(reg, nil)
+	a := New(reg, nil, postgres.NewQueryBuilder())
 	mux := http.NewServeMux()
 	a.RegisterRoutes(mux)
 
@@ -114,7 +115,7 @@ func TestCreateEndpoint_WithAllFields(t *testing.T) {
 	reg := schema.NewRegistry()
 	reg.LoadFromConfig(cfg)
 
-	a := New(reg, nil)
+	a := New(reg, nil, postgres.NewQueryBuilder())
 	mux := http.NewServeMux()
 	a.RegisterRoutes(mux)
 
