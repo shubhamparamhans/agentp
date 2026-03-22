@@ -1,5 +1,9 @@
 # Features By Status
 
+## Draft
+
+- [ai-chatbot](/Users/shubhamparamhans/Workspace/udv/docs/features/ai-chatbot/index.md)
+
 ## In Progress
 
 - [mongodb-support](/Users/shubhamparamhans/Workspace/udv/docs/features/mongodb-support/summary.md)

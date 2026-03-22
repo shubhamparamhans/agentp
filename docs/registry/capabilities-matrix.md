@@ -4,6 +4,7 @@ Use this page to answer "do we already have this?" before starting a new feature
 
 | Capability | Current State | Primary Feature Docs | Primary Code Areas |
 | --- | --- | --- | --- |
+| Natural-language data querying | Planned | [ai-chatbot](/Users/shubhamparamhans/Workspace/udv/docs/features/ai-chatbot/index.md) | `frontend/src/pages/`, `frontend/src/components/`, `frontend/src/api/`, `internal/api/`, `internal/dsl/` |
 | PostgreSQL querying | Available | [postgres-support](/Users/shubhamparamhans/Workspace/udv/docs/features/postgres-support/summary.md) | `internal/adapter/postgres/`, `internal/api/`, `internal/query/` |
 | MongoDB querying | In progress | [mongodb-support](/Users/shubhamparamhans/Workspace/udv/docs/features/mongodb-support/summary.md) | `internal/adapter/mongodb/`, `internal/schema_processor/` |
 | Query DSL | Available | [query-support](/Users/shubhamparamhans/Workspace/udv/docs/features/query-support/summary.md) | `internal/dsl/`, `internal/planner/` |
