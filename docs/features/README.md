@@ -1,43 +1,76 @@
-# Feature Documentation Guidelines
+# Feature Documentation Guide
 
-Goal
-----
-This folder contains a standard layout and guidelines for documenting each feature developed on its own branch. Each feature must have its documentation placed in a dedicated subfolder named after the feature branch. This makes reviews, changelogs and rollbacks clearer.
+`docs/features/` is where feature-level PM and engineering context meet.
 
-Folder structure
-----------------
-- `docs/features/<branch-name>/` — documentation for a single feature branch
-  - `summary.md` — one-paragraph summary and status
-  - `detailed.md` — implementation details, rationale, design decisions
-  - `changelog.md` — incremental notes, commits or PR references
-  - `assets/` — screenshots, diagrams, SQL dumps, or other binaries
+Use a feature folder when you want one place to track:
 
-- `docs/features/summary/` — aggregated summaries and indices
-  - `ALL_FEATURES_SUMMARY.md` — master index of feature folders
+- the user problem
+- scope and acceptance criteria
+- technical design
+- implementation checklist
+- delivery status
+- follow-up work
 
-How to use
-----------
-1. When creating a feature branch, add a folder under `docs/features/` that matches the branch name (replace `/` with `-` if needed).
-2. Add at minimum a `summary.md` describing the feature goal and status.
-3. Populate `detailed.md` as implementation progresses; keep `changelog.md` for stepwise notes.
-4. Commit documentation to the same feature branch so docs travel with code.
-5. When merging the feature, update `docs/features/summary/ALL_FEATURES_SUMMARY.md` with a link and one-line summary.
+## Recommended Structure
 
-Naming conventions
-------------------
-- Use the branch name as the folder name (e.g., `feat/singlebinary` -> `feat-singlebinary`).
-- Filenames must be lowercase and use hyphens for spaces.
+Create one folder per feature:
 
-Checklist for new feature docs
------------------------------
-- [ ] Create `docs/features/<branch-name>/summary.md` (required)
-- [ ] Create `docs/features/<branch-name>/detailed.md` (recommended)
-- [ ] Create `docs/features/<branch-name>/changelog.md` (optional)
-- [ ] Add assets to `assets/` if applicable
-- [ ] After merge, add one-line entry to `docs/features/summary/ALL_FEATURES_SUMMARY.md`
+`docs/features/<feature-slug>/`
 
-Example
--------
-For branch `feat/singlebinary` create `docs/features/feat-singlebinary/` with the files above. Use the template in `docs/features/TEMPLATE.md` to populate the files.
+Each new feature should contain:
 
-Maintainers should follow this guide for all future feature branches.
+- `index.md`
+- `prd.md`
+- `design.md`
+- `tasks.md`
+- `status.md`
+- `assets/`
+
+`assets/` is the preservation area for useful supporting material that is not the primary source of truth.
+
+Recommended contents:
+
+- prompt outputs
+- background analysis
+- one-off exploration notes
+- screenshots
+- sample payloads
+- imported legacy markdown files
+
+Use [the template folder](/Users/shubhamparamhans/Workspace/udv/docs/features/_template/index.md) to start a new feature.
+
+## Legacy Feature Folders
+
+Some existing feature folders still use:
+
+- `summary.md`
+- `detailed.md`
+- `changelog.md`
+
+That format remains valid for older work. When you touch those features again, either:
+
+- add the new file set alongside the legacy files, or
+- migrate the old content into the new format.
+
+## Folder Naming
+
+- Use lowercase kebab-case.
+- Prefer durable feature names such as `mongodb-support` over temporary branch names.
+- If work is a continuation of an existing capability, update the existing feature folder instead of making a near-duplicate one.
+
+## Definition Of Done For Docs
+
+Before calling a feature documented, make sure the folder clearly shows:
+
+- current status
+- scope
+- affected code areas
+- important decisions
+- next steps
+- supporting context preserved in `assets/` when applicable
+
+Also update:
+
+- [feature catalog](/Users/shubhamparamhans/Workspace/udv/docs/registry/feature-catalog.md)
+- [features by status](/Users/shubhamparamhans/Workspace/udv/docs/registry/features-by-status.md)
+- [capabilities matrix](/Users/shubhamparamhans/Workspace/udv/docs/registry/capabilities-matrix.md)

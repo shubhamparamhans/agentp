@@ -1,0 +1,37 @@
+name: Docs Sync
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate docs sync report
+        run: bash scripts/generate-docs-sync.sh
+
+      - name: Commit updated sync report
+        run: |
+          if git diff --quiet -- docs/registry/sync.md; then
+            echo "No sync changes to commit"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/registry/sync.md
+          git commit -m "docs: refresh sync report"
+          git push
